@@ -9,7 +9,6 @@ private:
 	size_t m_Used;
 public:
 	Buffer();
-	Buffer(char* data,size_t size);
 	Buffer(size_t size);
 	Buffer(const Buffer& buffer);
 	Buffer(Buffer&& buffer)noexcept;

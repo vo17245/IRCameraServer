@@ -75,8 +75,3 @@ void Buffer::Push(size_t size, std::function<void(char*)> writer)
 	writer(m_Data + m_Used);
 	m_Used += size;
 }
-Buffer::Buffer(char* data,size_t size)
-	:m_Data(data),m_Used(size),m_Size(size)
-{
-	
-}
