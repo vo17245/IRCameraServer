@@ -10,7 +10,7 @@ for i in range(batch):
     sock = socket.socket() 
     sock.connect((host, port))
     # send hello
-    sock.send(bytes.fromhex("00"))
+    sock.sendall(bytes.fromhex("00"))
     # recv reply
     recvData=sock.recv(1)
     # send data
@@ -19,8 +19,8 @@ for i in range(batch):
 
     dngSize=len(data)
 
-    sock.send(dngSize.to_bytes(4,byteorder="little",signed=False))# 小端序
-    sock.send(data)
+    sock.sendall(dngSize.to_bytes(4,byteorder="little",signed=False))# 小端序
+    sock.sendall(data)
     # recv server recv reply
     recvData=sock.recv(1)
     sock.close()
