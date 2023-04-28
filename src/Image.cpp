@@ -36,6 +36,10 @@ Image::Image(int width, int height, int channels)
 
 Image::~Image()
 {
+    if(m_Data==nullptr)
+    {
+        return;
+    }
     if (m_DataType == 0)
     {
         STBI_FREE(m_Data);
@@ -134,4 +138,23 @@ DNGImage::DNGImage(const char* data,size_t size)
     else {
         throw "can not load dng image";
     }
+}
+
+Image::Image(Image&& src)noexcept
+    :m_Width(src.m_Width),
+    m_Height(src.m_Height),
+    m_Channels(src.m_Channels),
+    m_Data(src.m_Data),
+    m_DataType(src.m_DataType)
+{
+    src.m_Data=nullptr;
+}
+
+DNGImage::DNGImage(DNGImage&& src)
+    :m_Width(src.m_Width),
+    m_Height(src.m_Height),
+    m_BitsPerPixel(src.m_BitsPerPixel)
+{
+    memcpy(m_Pattern,src.m_Pattern,4*sizeof(int));
+    m_Data=std::move(src.m_Data);
 }

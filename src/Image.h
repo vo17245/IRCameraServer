@@ -7,6 +7,7 @@ public:
 	Image(const std::string& path);
 	Image(int width, int height, int channels);
 	Image(const char* data,int len);
+	Image(Image&& src)noexcept;
 	~Image();
 	int SaveAsPNG(const std::string& path);
 	unsigned char* toPNG(int* pngSize);
@@ -21,12 +22,12 @@ private:
 	int m_Height;
 	int m_Channels;
 	unsigned char* m_Data;
-private:
 	/*
 	* 0 -> created by stb
 	* 1 -> a normal memory created by new
 	*/
 	int m_DataType;
+	
 
 };
 
@@ -35,6 +36,7 @@ class DNGImage
 public:
 	DNGImage(const std::string& path);
     DNGImage(const char* data,size_t size);
+	DNGImage(DNGImage&& src);
 	~DNGImage();
 	inline int& GetWidth() { return m_Width; }
 	inline int& GetHeight() { return m_Height; }

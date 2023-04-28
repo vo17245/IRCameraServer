@@ -3,8 +3,13 @@
 #include <opencv2/opencv.hpp>
 #include "opencv2/imgcodecs/legacy/constants_c.h"
 
+
+
+
 namespace ircs
 {
+    std::mutex IRRenderer::m_Mutex;
+    std::list<std::unique_ptr<Buffer>> IRRenderer::m_DngBufferList; 
     unsigned char color[]=
     {0x00,0x00,0x00,
     0x10,0x07,0x07,
@@ -148,4 +153,23 @@ namespace ircs
         cv::imshow("IRRenderer",m);
         cv::waitKey(100);
     }
+    void IRRenderer::PushImage(std::unique_ptr<Buffer> dngBuf)
+    {
+        std::lock_guard<std::mutex> lock(m_Mutex);
+        m_DngBufferList.push_front(std::move(dngBuf));        
+    }
+    std::unique_ptr<Buffer> IRRenderer::PopImage()
+    {
+        std::lock_guard<std::mutex> lock(m_Mutex);
+        std::unique_ptr<Buffer> buf=std::move(m_DngBufferList.back());
+        m_DngBufferList.pop_back();
+        return buf;
+    }
+
+    Frame::Frame(size_t index,std::unique_ptr<Buffer> dngBuf)
+        :m_Index(index),m_DngBuf(std::move(dngBuf))
+    {
+
+    }
+    
 }
