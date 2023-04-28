@@ -5,8 +5,8 @@ namespace ircs
 {
     namespace socket
     {
-        const int IRCS_BUFSIZE=41943040; //40M
-        char* ircs_recv_buffer=new char[IRCS_BUFSIZE];
+        static const int IRCS_BUFSIZE=41943040; //40M
+        static char* ircs_recv_buffer=new char[IRCS_BUFSIZE];
         char* GetLastError()
         {
             return ::strerror(errno);

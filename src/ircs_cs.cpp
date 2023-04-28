@@ -1,12 +1,41 @@
 #include "Socket.h"
 #include "Log.h"
 
-const int IRCS_BUFSIZE=41943040; //40M
-char* ircs_recv_buffer=new char[IRCS_BUFSIZE];
 
 size_t getFileSize(const char* filepath);
+int Worker(int clientSocket);
 
 
+int main(int argc, char** argv){
+
+    int serverSocket=ircs::socket::CreateServerSocket(17246);
+    if(serverSocket<0)
+    {
+        ERROR("无法创建serverSocket,由于 {0}",ircs::socket::GetLastError());
+        return -1;
+    }
+    while(true)
+    {
+        int clientSocket=ircs::socket::Accept(serverSocket);
+  
+        if(clientSocket<0)
+        {
+            ERROR(ircs::socket::GetLastError());
+            continue;
+        }
+        Worker(clientSocket);
+    }
+    return 0;
+}
+
+
+
+size_t getFileSize(const char* filepath) 
+{
+	struct stat statbuf;
+	stat(filepath, &statbuf);
+	return statbuf.st_size;
+}
 int Worker(int clientSocket)
 {
     // recv client hello
@@ -103,35 +132,4 @@ int Worker(int clientSocket)
     ircs::socket::Close(clientSocket);
     DEBUG("close connect");
     return 0;
-}
-
-int main(int argc, char** argv){
-
-    int serverSocket=ircs::socket::CreateServerSocket(17246);
-    if(serverSocket<0)
-    {
-        ERROR("无法创建serverSocket,由于 {0}",ircs::socket::GetLastError());
-        return -1;
-    }
-    while(true)
-    {
-        int clientSocket=ircs::socket::Accept(serverSocket);
-  
-        if(clientSocket<0)
-        {
-            ERROR(ircs::socket::GetLastError());
-            continue;
-        }
-        Worker(clientSocket);
-    }
-    return 0;
-}
-
-
-
-size_t getFileSize(const char* filepath) 
-{
-	struct stat statbuf;
-	stat(filepath, &statbuf);
-	return statbuf.st_size;
 }

@@ -1,16 +1,30 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<errno.h>
-#include<sys/types.h>
-#include<sys/socket.h>
-#include<netinet/in.h>
-#include<unistd.h>
 #include <iostream>
 #include "Log.h"
-#include "Buffer.h"
-#include "Image.h"
 #include "Socket.h"
+
+int Worker(int clientSocket);
+
+int main(int argc, char** argv){
+
+    int serverSocket=ircs::socket::CreateServerSocket(17245);
+    if(serverSocket<0)
+    {
+        ERROR("无法创建serverSocket,由于 {0}",ircs::socket::GetLastError());
+        return -1;
+    }
+    while(true)
+    {
+        int clientSocket=ircs::socket::Accept(serverSocket);
+        DEBUG("client connect!");
+        if(clientSocket<0)
+        {
+            ERROR(ircs::socket::GetLastError());
+            continue;
+        }
+        Worker(clientSocket);
+    }
+    return 0;
+}
 
 int Worker(int clientSocket)
 {
@@ -51,7 +65,7 @@ int Worker(int clientSocket)
     // recv dng size
 
     Buffer dngSizeBuf=ircs::socket::BufferRecv(clientSocket,4);
-
+   
     
     if(dngSizeBuf.GetUsed()!=4)
     {
@@ -59,11 +73,11 @@ int Worker(int clientSocket)
         return -1;
     }
     int dngSize=*((int*)dngSizeBuf.GetData());
-  
+    DEBUG("recv dng size stop: {0}",dngSize);
     // recv dng data
-  
+    DEBUG("recv dng data start");
     Buffer dngDataBuf=ircs::socket::BufferRecv(clientSocket,dngSize);
-
+    DEBUG("recv dng data stop");
 
     // TODO: do somethin with dng datas
     DNGImage dng(dngDataBuf.GetData(),dngDataBuf.GetUsed());
@@ -82,28 +96,6 @@ int Worker(int clientSocket)
     }
     // close client socket
     ircs::socket::Close(clientSocket);
+    DEBUG("close client connect");
     return 0;
 }
-
-int main(int argc, char** argv){
-
-    int serverSocket=ircs::socket::CreateServerSocket(17245);
-    if(serverSocket<0)
-    {
-        ERROR("无法创建serverSocket,由于 {0}",ircs::socket::GetLastError());
-        return -1;
-    }
-    while(true)
-    {
-        int clientSocket=ircs::socket::Accept(serverSocket);
-  
-        if(clientSocket<0)
-        {
-            ERROR(ircs::socket::GetLastError());
-            continue;
-        }
-        Worker(clientSocket);
-    }
-    return 0;
-}
-
