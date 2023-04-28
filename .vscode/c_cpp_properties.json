@@ -4,7 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/src/vendor",
-                "/root/program/opencv/include/opencv4"
+                "/home/vo17245/program/opencv/include/opencv4"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

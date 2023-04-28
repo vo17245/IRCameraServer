@@ -22,8 +22,8 @@ OPENCV_LDFLAGS:= -L${OPENCV_HOME}/lib \
 all: ircs_ss ircs_cs
 	@echo "build all"
 
-ircs_ss: src/ircs_ss.cpp src/Buffer.cpp src/Log.cpp src/Image.cpp src/Socket.cpp
-	${CXX} ${CXXFLAGS} -o ircs_ss -I src/vendor src/ircs_ss.cpp src/Buffer.cpp src/Log.cpp src/Image.cpp src/Socket.cpp
+ircs_ss: src/ircs_ss.cpp src/Buffer.cpp src/Log.cpp src/Image.cpp src/Socket.cpp src/IRRenderer.cpp
+	${CXX} ${CXXFLAGS} ${OPENCV_INCLUDE}  -I src/vendor src/ircs_ss.cpp src/Buffer.cpp src/Log.cpp src/Image.cpp src/Socket.cpp src/IRRenderer.cpp ${OPENCV_LDFLAGS} -o ircs_ss
 ircs_cs: src/ircs_cs.cpp src/Buffer.cpp src/Log.cpp src/Image.cpp src/Socket.cpp
 	${CXX} ${CXXFLAGS} -o ircs_cs -I src/vendor src/ircs_cs.cpp src/Buffer.cpp src/Log.cpp src/Image.cpp src/Socket.cpp
 

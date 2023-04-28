@@ -22,5 +22,6 @@ private:
 #define DEBUG(...)  Log::Get().GetLogger()->debug(__VA_ARGS__)
 
 
-
-
+#define ASSERT(x) if(!(x)){\
+ERROR("assert failed: {0} in {1}:{2}",#x,__FILE__,__LINE__);\
+exit(-1);}

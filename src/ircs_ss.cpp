@@ -2,6 +2,8 @@
 #include "Log.h"
 #include "Socket.h"
 
+#include "IRRenderer.h"
+
 int Worker(int clientSocket);
 
 int main(int argc, char** argv){
@@ -12,6 +14,7 @@ int main(int argc, char** argv){
         ERROR("无法创建serverSocket,由于 {0}",ircs::socket::GetLastError());
         return -1;
     }
+    ircs::IRRenderer::CreateWindow();
     while(true)
     {
         int clientSocket=ircs::socket::Accept(serverSocket);
@@ -81,8 +84,9 @@ int Worker(int clientSocket)
 
     // TODO: do somethin with dng datas
     DNGImage dng(dngDataBuf.GetData(),dngDataBuf.GetUsed());
-    DEBUG("height: {0}",dng.GetHeight());
-    DEBUG("width: {0}",dng.GetWidth());
+    Image img=ircs::IRRenderer::Render(dng);
+    DEBUG("dng to png, png width {0} height {1}",img.GetWidth(),img.GetHeight());
+    ircs::IRRenderer::ShowImage(img);
     // send recv reply
     Buffer recvReply=Buffer();
     recvReply.Push(1,[](char* buf){
