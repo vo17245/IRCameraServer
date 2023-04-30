@@ -1,13 +1,23 @@
 #include <iostream>
+#include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
 #include "Log.h"
 #include "Socket.h"
-
 #include "IRRenderer.h"
 
 int Worker(int clientSocket);
-
+void signal_handler(int sig) {
+    std::cout<<std::endl;
+    std::cout<<"wait for window to close"<<std::endl;
+    ircs::IRRenderer::Stop();
+    exit(EXIT_SUCCESS);
+}
 int main(int argc, char** argv){
-
+    if (signal(SIGINT, signal_handler) == SIG_ERR) {
+        perror("Cannot register signal handler");
+        exit(EXIT_FAILURE);
+    }
     int serverSocket=ircs::socket::CreateServerSocket(17245);
     if(serverSocket<0)
     {

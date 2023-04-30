@@ -13,9 +13,9 @@ public:
 	unsigned char* toPNG(int* pngSize);
 	void Free(unsigned char* png);
 	inline unsigned char* At(int i, int j) { return &m_Data[(i * m_Width + j) * m_Channels]; }
-	inline int& GetWidth() { return m_Width; }
-	inline int& GetHeight() { return m_Height; }
-	inline int& GetChannels() { return m_Channels; }
+	inline int& GetWidth()  { return m_Width; }
+	inline int& GetHeight()  { return m_Height; }
+	inline int& GetChannels()  { return m_Channels; }
 	inline unsigned char* GetData() { return m_Data; }
 private:
 	int m_Width;

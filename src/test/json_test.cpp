@@ -24,7 +24,7 @@ bool isSame(const char* a,const char* b,int len)
 
 int main()
 {
-    char filePath[]="/root/dev/IRCameraServer/src/test/a.json";
+    char filePath[]="res/a.json";
     size_t fileSize=getFileSize(filePath);
     char* data=new char[fileSize];
     FILE* fp;
@@ -32,6 +32,7 @@ int main()
     ASSERT(fp!=nullptr);
     fread(data,fileSize,1,fp);
     json_value_s* value= json_parse(data,fileSize);
+    ASSERT(value!=nullptr);
     json_object_s* object=(json_object_s*)value->payload;
     ASSERT(object->length==2);
     ASSERT(isSame(object->start->name->string,"name",4));

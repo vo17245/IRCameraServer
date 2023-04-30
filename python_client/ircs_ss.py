@@ -1,8 +1,8 @@
 import socket               
 import time
         
-host = "192.168.1.9"
-port = 17245         
+host = "192.168.1.86"
+port = 17245
 
 start = time.time() 
 batch=100

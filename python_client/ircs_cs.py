@@ -14,7 +14,7 @@ for i in range(batch):
     # recv reply
     recvData=sock.recv(1)
     
-    with open("a.dng","rb") as f:
+    with open("res/a.dng","rb") as f:
         data=f.read()
 
     dngSize=len(data)

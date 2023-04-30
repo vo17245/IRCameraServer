@@ -8,9 +8,14 @@
 
 namespace ircs
 {
-    std::mutex IRRenderer::m_Mutex;
-    std::list<std::unique_ptr<Buffer>> IRRenderer::m_DngBufferList; 
-    unsigned char color[]=
+    bool IRRenderer::s_isRunning=false;
+    std::thread* IRRenderer::s_WindowThread=nullptr;
+    const char* IRRenderer::s_WindowName="IRRenderer";
+    const int IRRenderer::s_WindowWidth=640;
+    const int IRRenderer::s_WindowHeight=480;
+    std::mutex IRRenderer::s_Mutex;
+    std::list<std::unique_ptr<Buffer>> IRRenderer::s_DngBufferList; 
+    const unsigned char color[]=
     {0x00,0x00,0x00,
     0x10,0x07,0x07,
     0x20,0x10,0x0E,
@@ -87,12 +92,10 @@ namespace ircs
         a/=(max_light-min_light);
         a*=63;
         int i=(int)a;
-        unsigned char* p=&color[i*3];
+        const unsigned char* p=&color[i*3];
         r=p[0];
         g=p[1];
         b=p[2];
-        //std::cout<<light<<" "<<i<<" "<<(unsigned)r<<" "<<(unsigned)g<<" "<<(unsigned)b<<std::endl;
-        //std::cin.get();
     }
     Image IRRenderer::Render(DNGImage& dng)
     {
@@ -144,10 +147,7 @@ namespace ircs
     void IRRenderer::ShowImage(Image& png)
     {
         
-        //cv::Mat m(png.GetHeight(),png.GetWidth(),(((0) & ((1 << 3) - 1)) + (((3)-1) << 3)),png.GetData());
-        //cv::imshow("IRRenderer",m);
-        //cv::waitKey(100);
-
+        //(((0) & ((1 << 3) - 1)) + (((3)-1) << 3)) -> cv::CV_8UC3
         cv::Mat m(png.GetHeight(),png.GetWidth(),(((0) & ((1 << 3) - 1)) + (((3)-1) << 3)),png.GetData());
         cv::cvtColor(m, m, cv::COLOR_RGB2BGR);
         cv::imshow("IRRenderer",m);
@@ -155,14 +155,14 @@ namespace ircs
     }
     void IRRenderer::PushImage(std::unique_ptr<Buffer> dngBuf)
     {
-        std::lock_guard<std::mutex> lock(m_Mutex);
-        m_DngBufferList.push_front(std::move(dngBuf));        
+        std::lock_guard<std::mutex> lock(s_Mutex);
+        s_DngBufferList.push_front(std::move(dngBuf));        
     }
     std::unique_ptr<Buffer> IRRenderer::PopImage()
     {
-        std::lock_guard<std::mutex> lock(m_Mutex);
-        std::unique_ptr<Buffer> buf=std::move(m_DngBufferList.back());
-        m_DngBufferList.pop_back();
+        std::lock_guard<std::mutex> lock(s_Mutex);
+        std::unique_ptr<Buffer> buf=std::move(s_DngBufferList.back());
+        s_DngBufferList.pop_back();
         return buf;
     }
 
@@ -171,5 +171,48 @@ namespace ircs
     {
 
     }
-    
+    cv::Mat Image2Mat(Image& img)
+    {
+        cv::Mat m(img.GetHeight(),img.GetWidth(),(((0) & ((1 << 3) - 1)) + (((3)-1) << 3)),img.GetData());
+        cv::cvtColor(m, m, cv::COLOR_RGB2BGR);
+        return m;
+    }
+    void IRRenderer::WindowThread()
+    {
+        cv::namedWindow(s_WindowName);
+        cv::resizeWindow(s_WindowName,s_WindowWidth , s_WindowHeight);
+        Image waiting("res/waiting.png");
+        cv::Mat m=Image2Mat(waiting);
+        cv::imshow(s_WindowName,m);
+        while(s_isRunning)
+        {
+            if(!isDngBufferListEmpty())
+            {
+                std::unique_ptr buffer=PopImage();
+                DNGImage dng((*buffer).GetData(),(*buffer).GetUsed());
+                Image img=Render(dng);
+                cv::imshow(s_WindowName,Image2Mat(img));
+                cv::waitKey(100);
+            }
+        }
+    }
+    bool IRRenderer::isDngBufferListEmpty()
+    {
+        std::lock_guard<std::mutex> lock(s_Mutex);
+        return s_DngBufferList.empty();
+    }
+    void IRRenderer::Run()
+    {
+        s_isRunning=true;
+        std::thread* t=new std::thread(WindowThread);
+        s_WindowThread=t;
+    }
+    void IRRenderer::Stop()
+    {
+        s_isRunning=false;
+        if(s_WindowThread!=nullptr)
+        {
+            s_WindowThread->join();
+        }
+    }
 }
