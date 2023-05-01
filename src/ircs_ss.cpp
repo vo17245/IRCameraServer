@@ -6,6 +6,7 @@
 #include "Socket.h"
 #include "IRRenderer.h"
 #include "Common.h"
+#include "utils/GzipUtils.h"
 
 int Worker(int clientSocket);
 void signal_handler(int sig) {
@@ -91,14 +92,16 @@ int Worker(int clientSocket)
     DEBUG("recv dng size stop: {0}",dngSize);
     // recv dng data
     DEBUG("recv dng data start");
-    std::unique_ptr<Buffer> buffer(new Buffer());
     size_t start_ts=ircs::common::GetTimestampMS();
-    ircs::socket::BufferRecv(clientSocket,dngSize,*buffer);
+    Buffer buffer =ircs::socket::BufferRecv(clientSocket,dngSize);
     size_t stop_ts=ircs::common::GetTimestampMS();
     DEBUG("recv dng data stop,cast {0} ms",stop_ts-start_ts);
 
     // render and show image
-    ircs::IRRenderer::PushImage(std::move(buffer));
+    Buffer buffer1=GzipUtils::Decompress(buffer);
+    std::unique_ptr<Buffer> buffer2(new Buffer);
+    (*buffer2)=std::move(buffer1);
+    ircs::IRRenderer::PushImage(std::move(buffer2));
     // send recv reply
     Buffer recvReply=Buffer();
     recvReply.Push(1,[](char* buf){
