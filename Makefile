@@ -1,6 +1,8 @@
 # gcc flag
 CXX:=g++
 CXXFLAGS:=-Wall -Wextra -std=c++17 -O3
+INCLUDE:=-Isrc \
+-Isrc/vendor
 
 #opencv
 
@@ -20,14 +22,39 @@ OPENCV_LDFLAGS:= -L${OPENCV_HOME}/lib \
 -lopencv_flann  \
 -lopencv_core
 
+OPENCV_LIBDIR:=-L${OPENCV_HOME}/lib
+OPENCV_LIB:=-lopencv_stitching \
+-lopencv_objdetect \
+-lopencv_calib3d \
+-lopencv_features2d \
+-lopencv_highgui \
+-lopencv_imgcodecs \
+-lopencv_video \
+-lopencv_photo \
+-lopencv_ml \
+-lopencv_imgproc \
+-lopencv_flann  \
+-lopencv_core
+
+# zlib
+
+ZLIB_INCLUDE:=-I /usr/include
+ZLIB_LIBDIR:=-L /usr/local/lib
+ZLIB_LIB:=-l z
+
 # ircs_ss
-IRCS_SS_SRC=src/ircs_ss.cpp \
+IRCS_SS_INCLUDE:=${OPENCV_INCLUDE} ${ZLIB_INCLUDE} ${INCLUDE}
+IRCS_SS_LIBDIR:=${OPENCV_LIBDIR} ${ZLIB_LIBDIR}
+IRCS_SS_LIB:=${OPENCV_LIB} ${ZLIB_LIB}
+IRCS_SS_SRC:=src/ircs_ss.cpp \
 src/Buffer.cpp \
 src/Log.cpp \
 src/Image.cpp \
 src/Socket.cpp \
 src/IRRenderer.cpp \
-src/Common.cpp
+src/Common.cpp \
+src/utils/GzipUtils.cpp
+
 
 
 #=========================Application=====================
@@ -37,7 +64,7 @@ all: bin/ircs_ss bin/ircs_cs
 
 
 bin/ircs_ss: ${IRCS_SS_SRC}
-	${CXX} ${CXXFLAGS} ${OPENCV_INCLUDE}  -I src/vendor ${IRCS_SS_SRC} ${OPENCV_LDFLAGS} -o bin/ircs_ss
+	${CXX} ${CXXFLAGS} ${IRCS_SS_INCLUDE} ${IRCS_SS_SRC} ${IRCS_SS_LIBDIR} ${IRCS_SS_LIB} -o bin/ircs_ss
 bin/ircs_cs: src/ircs_cs.cpp src/Buffer.cpp src/Log.cpp src/Image.cpp src/Socket.cpp
 	${CXX} ${CXXFLAGS}  -I src/vendor src/ircs_cs.cpp src/Buffer.cpp src/Log.cpp src/Image.cpp src/Socket.cpp -o bin/ircs_cs
 
