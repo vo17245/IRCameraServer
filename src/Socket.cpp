@@ -53,11 +53,7 @@ namespace ircs
         }
         Buffer BufferRecv(int clientSocket,int size)
         {
-
-        
             Buffer buffer;
-
-
             while(buffer.GetUsed()!=size)
             {
                 if (size-buffer.GetUsed()>=IRCS_BUFSIZE)
@@ -105,6 +101,30 @@ namespace ircs
                 sendCnt+=ret;
             }
             return sendCnt;
+        }
+        void BufferRecv(int clientSocket,int size,Buffer& buffer)
+        {
+            while(buffer.GetUsed()!=size)
+            {
+                if (size-buffer.GetUsed()>=IRCS_BUFSIZE)
+                {
+                    int byteCnt=Recv(clientSocket,ircs_recv_buffer,IRCS_BUFSIZE);
+                    if (byteCnt==0)
+                    {
+                        return;
+                    }
+                    buffer.Push(byteCnt,ircs_recv_buffer);
+                }
+                else
+                {
+                    int byteCnt=Recv(clientSocket,ircs_recv_buffer,size-buffer.GetUsed());
+                    if (byteCnt==0)
+                    {
+                        return;
+                    }
+                    buffer.Push(byteCnt,ircs_recv_buffer);
+                }
+            }
         }
     }
     

@@ -2,7 +2,7 @@
 #include "Log.h"
 #include <opencv2/opencv.hpp>
 #include "opencv2/imgcodecs/legacy/constants_c.h"
-
+#include "Common.h"
 
 
 
@@ -105,21 +105,23 @@ namespace ircs
         unsigned short min_light=UINT16_MAX;
         unsigned short light;
         unsigned char r,g,b;
-        for(int col=0;col<cols;col++)
-        {
-            for(int row=0;row<rows;row++)
-            {
-                light=*(unsigned short*)dng.At(row,col);
-                if(light<min_light)
-                {
-                    min_light=light;
-                }
-                else if(light>max_light)
-                {
-                    max_light=light;
-                }
-            }
-        }
+        //for(int col=0;col<cols;col++)
+        //{
+        //    for(int row=0;row<rows;row++)
+        //    {
+        //        light=*(unsigned short*)dng.At(row,col);
+        //        if(light<min_light)
+        //        {
+        //            min_light=light;
+        //        }
+        //        else if(light>max_light)
+        //        {
+        //            max_light=light;
+        //        }
+        //    }
+        //}
+        max_light=1023;
+        min_light=0;
     
         ASSERT(dng.GetBitsPerPixel()==16);
         Image png(dng.GetWidth(),dng.GetHeight(),3);
@@ -146,7 +148,6 @@ namespace ircs
     }
     void IRRenderer::ShowImage(Image& png)
     {
-        
         //(((0) & ((1 << 3) - 1)) + (((3)-1) << 3)) -> cv::CV_8UC3
         cv::Mat m(png.GetHeight(),png.GetWidth(),(((0) & ((1 << 3) - 1)) + (((3)-1) << 3)),png.GetData());
         cv::cvtColor(m, m, cv::COLOR_RGB2BGR);
@@ -177,21 +178,37 @@ namespace ircs
         cv::cvtColor(m, m, cv::COLOR_RGB2BGR);
         return m;
     }
+    void MatResize(int width,int height,cv::Mat& image)
+    {
+        cv::Mat resizedImage;
+        cv::Size newSize(width, height);
+        cv::resize(image, resizedImage, newSize);
+        image=resizedImage;
+    }
     void IRRenderer::WindowThread()
     {
         cv::namedWindow(s_WindowName);
-        cv::resizeWindow(s_WindowName,s_WindowWidth , s_WindowHeight);
-        Image waiting("res/waiting.png");
-        cv::Mat m=Image2Mat(waiting);
+        cv::Mat m=cv::imread("res/waiting.png");
+        DEBUG("在修改大小前的大小 {0} {1}",m.cols,m.rows);
+        MatResize(s_WindowWidth,s_WindowHeight,m);
+        DEBUG("在修改大小后的大小 {0} {1}",m.cols,m.rows);
         cv::imshow(s_WindowName,m);
+        cv::waitKey(100);
+        sleep(10);
         while(s_isRunning)
         {
             if(!isDngBufferListEmpty())
             {
+                size_t start_ts=::ircs::common::GetTimestampMS();
                 std::unique_ptr buffer=PopImage();
                 DNGImage dng((*buffer).GetData(),(*buffer).GetUsed());
                 Image img=Render(dng);
-                cv::imshow(s_WindowName,Image2Mat(img));
+                cv::Mat mat=Image2Mat(img);
+                MatResize(s_WindowWidth,s_WindowHeight,mat);
+                
+                cv::imshow(s_WindowName,mat);
+                size_t stop_ts=::ircs::common::GetTimestampMS();
+                DEBUG("show image cast {0} ms",stop_ts-start_ts);
                 cv::waitKey(100);
             }
         }

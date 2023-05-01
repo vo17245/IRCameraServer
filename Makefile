@@ -1,6 +1,6 @@
 # gcc flag
 CXX:=g++
-CXXFLAGS:=-Wall -Wextra -std=c++17
+CXXFLAGS:=-Wall -Wextra -std=c++17 -O3
 
 #opencv
 
@@ -26,7 +26,8 @@ src/Buffer.cpp \
 src/Log.cpp \
 src/Image.cpp \
 src/Socket.cpp \
-src/IRRenderer.cpp
+src/IRRenderer.cpp \
+src/Common.cpp
 
 
 #=========================Application=====================

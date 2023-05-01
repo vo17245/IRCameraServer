@@ -19,7 +19,7 @@ public:
 	void Push(size_t size, std::function<void(char*)> writer);
 	void ResetSize(size_t size);
 	void Clear();
-	inline const char* GetData()const { return m_Data; }
+	inline char* GetData()const { return m_Data; }
 	inline const size_t GetSize()const { return m_Size; }
 	inline const size_t GetUsed()const { return m_Used; }
 };

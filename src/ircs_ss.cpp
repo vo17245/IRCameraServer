@@ -5,6 +5,7 @@
 #include "Log.h"
 #include "Socket.h"
 #include "IRRenderer.h"
+#include "Common.h"
 
 int Worker(int clientSocket);
 void signal_handler(int sig) {
@@ -13,6 +14,7 @@ void signal_handler(int sig) {
     ircs::IRRenderer::Stop();
     exit(EXIT_SUCCESS);
 }
+
 int main(int argc, char** argv){
     if (signal(SIGINT, signal_handler) == SIG_ERR) {
         perror("Cannot register signal handler");
@@ -24,7 +26,7 @@ int main(int argc, char** argv){
         ERROR("无法创建serverSocket,由于 {0}",ircs::socket::GetLastError());
         return -1;
     }
-    ircs::IRRenderer::CreateWindow();
+    ircs::IRRenderer::Run();
     while(true)
     {
         int clientSocket=ircs::socket::Accept(serverSocket);
@@ -89,14 +91,14 @@ int Worker(int clientSocket)
     DEBUG("recv dng size stop: {0}",dngSize);
     // recv dng data
     DEBUG("recv dng data start");
-    Buffer dngDataBuf=ircs::socket::BufferRecv(clientSocket,dngSize);
-    DEBUG("recv dng data stop");
+    std::unique_ptr<Buffer> buffer(new Buffer());
+    size_t start_ts=ircs::common::GetTimestampMS();
+    ircs::socket::BufferRecv(clientSocket,dngSize,*buffer);
+    size_t stop_ts=ircs::common::GetTimestampMS();
+    DEBUG("recv dng data stop,cast {0} ms",stop_ts-start_ts);
 
-    // TODO: do somethin with dng datas
-    DNGImage dng(dngDataBuf.GetData(),dngDataBuf.GetUsed());
-    Image img=ircs::IRRenderer::Render(dng);
-    DEBUG("dng to png, png width {0} height {1}",img.GetWidth(),img.GetHeight());
-    ircs::IRRenderer::ShowImage(img);
+    // render and show image
+    ircs::IRRenderer::PushImage(std::move(buffer));
     // send recv reply
     Buffer recvReply=Buffer();
     recvReply.Push(1,[](char* buf){

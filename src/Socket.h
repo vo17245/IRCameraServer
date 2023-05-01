@@ -22,6 +22,7 @@ namespace ircs
         int Recv(int clientSocket,char* buf,int size);
         int Close(int sock);
         Buffer BufferRecv(int clientSocket,int size);
+        void BufferRecv(int clientSocket,int size,Buffer& buffer);
         int Send(int clientSocket,const char* buf,int size);
         /*
         *@return
